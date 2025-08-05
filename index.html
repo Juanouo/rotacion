@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Office Cleaning Rotation Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .current-week {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .current-week h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        .cleaning-pair {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .pairs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .pair-card {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .pair-card.current {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            animation: pulse 2s infinite;
+        }
+
+        .pair-card.completed {
+            background: linear-gradient(45deg, #95e1d3, #6c7b95);
+            opacity: 0.7;
+        }
+
+        .solo-card {
+            background: linear-gradient(45deg, #fce38a, #f38181);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .week-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+        }
+
+        .email-preview {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            font-family: monospace;
+            margin-top: 15px;
+        }
+
+        .colleagues-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .colleague-tag {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-waiting {
+            background: #ffc107;
+        }
+
+        .status-current {
+            background: #dc3545;
+            animation: blink 1s infinite;
+        }
+
+        .status-completed {
+            background: #28a745;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Office Cleaning Rotation Manager</h1>
+        
+        <div class="section">
+            <h2>👥 Team Members</h2>
+            <div class="colleagues-list" id="colleaguesList">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ Controls</h2>
+            <div class="controls">
+                <button onclick="generateNewRotation()">🔄 Generate New Rotation</button>
+                <button onclick="nextWeek()" id="nextWeekBtn">➡️ Next Week</button>
+                <button onclick="sendEmailReminder()" id="emailBtn" disabled>📧 Send Email Reminder</button>
+                <button onclick="resetRotation()">🔄 Reset All</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="week-info">
+                <div>
+                    <strong>Current Rotation:</strong> <span id="rotationNumber">1</span>
+                </div>
+                <div>
+                    <strong>Week:</strong> <span id="currentWeek">1</span> of <span id="totalWeeks">6</span>
+                </div>
+            </div>
+
+            <div class="current-week" id="currentWeekDisplay">
+                <h3>No active cleaning assignment</h3>
+                <p>Click "Generate New Rotation" to start</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📋 Current Rotation Schedule</h2>
+            <div class="pairs-grid" id="pairsGrid">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="section" id="emailSection" style="display: none;">
+            <h2>📧 Email Preview</h2>
+            <div class="email-preview" id="emailPreview">
+                <!-- Email content will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const colleagues = ['Juan', 'Javi', 'Nacho', 'Klaus', 'Lore', 'Hugo', 'GabrielP', 'GabrielV', 'Javier', 'Cata', 'Victor'];
+        
+        let currentRotation = [];
+        let currentWeekIndex = 0;
+        let rotationNumber = 1;
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function createPairs(people) {
+            const shuffled = shuffleArray(people);
+            const pairs = [];
+            let solo = null;
+
+            for (let i = 0; i < shuffled.length - 1; i += 2) {
+                pairs.push([shuffled[i], shuffled[i + 1]]);
+            }
+
+            if (shuffled.length % 2 === 1) {
+                solo = shuffled[shuffled.length - 1];
+            }
+
+            return { pairs, solo };
+        }
+
+        function generateNewRotation() {
+            const { pairs, solo } = createPairs(colleagues);
+            currentRotation = pairs.map(pair => ({ pair, status: 'waiting' }));
+            if (solo) {
+                currentRotation.push({ pair: [solo], status: 'waiting', isSolo: true });
+            }
+            
+            currentWeekIndex = 0;
+            if (currentRotation.length > 0) {
+                currentRotation[0].status = 'current';
+            }
+            
+            updateDisplay();
+            document.getElementById('emailBtn').disabled = false;
+        }
+
+        function nextWeek() {
+            if (currentRotation.length === 0) return;
+
+            // Mark current week as completed
+            if (currentWeekIndex < currentRotation.length) {
+                currentRotation[currentWeekIndex].status = 'completed';
+            }
+
+            currentWeekIndex++;
+
+            // Check if rotation is complete
+            if (currentWeekIndex >= currentRotation.length) {
+                rotationNumber++;
+                alert(`Rotation ${rotationNumber - 1} completed! Generate a new rotation for the next cycle.`);
+                document.getElementById('nextWeekBtn').disabled = true;
+                document.getElementById('emailBtn').disabled = true;
+            } else {
+                // Set next week as current
+                currentRotation[currentWeekIndex].status = 'current';
+                document.getElementById('emailBtn').disabled = false;
+            }
+
+            updateDisplay();
+        }
+
+        function resetRotation() {
+            currentRotation = [];
+            currentWeekIndex = 0;
+            rotationNumber = 1;
+            document.getElementById('emailSection').style.display = 'none';
+            document.getElementById('nextWeekBtn').disabled = false;
+            document.getElementById('emailBtn').disabled = true;
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            // Update colleagues list
+            const colleaguesList = document.getElementById('colleaguesList');
+            colleaguesList.innerHTML = colleagues.map(name => 
+                `<span class="colleague-tag">${name}</span>`
+            ).join('');
+
+            // Update week info
+            document.getElementById('rotationNumber').textContent = rotationNumber;
+            document.getElementById('currentWeek').textContent = currentWeekIndex + 1;
+            document.getElementById('totalWeeks').textContent = currentRotation.length || 0;
+
+            // Update current week display
+            const currentWeekDisplay = document.getElementById('currentWeekDisplay');
+            if (currentRotation.length === 0) {
+                currentWeekDisplay.innerHTML = `
+                    <h3>No active cleaning assignment</h3>
+                    <p>Click "Generate New Rotation" to start</p>
+                `;
+            } else if (currentWeekIndex >= currentRotation.length) {
+                currentWeekDisplay.innerHTML = `
+                    <h3>🎉 Rotation ${rotationNumber - 1} Complete!</h3>
+                    <p>Generate a new rotation to continue</p>
+                `;
+            } else {
+                const currentPair = currentRotation[currentWeekIndex];
+                const pairText = currentPair.isSolo 
+                    ? `${currentPair.pair[0]} (solo week - no cleaning required)` 
+                    : `${currentPair.pair[0]} & ${currentPair.pair[1]}`;
+                
+                currentWeekDisplay.innerHTML = `
+                    <h3>Week ${currentWeekIndex + 1} - Current Assignment</h3>
+                    <div class="cleaning-pair">${pairText}</div>
+                `;
+            }
+
+            // Update pairs grid
+            const pairsGrid = document.getElementById('pairsGrid');
+            if (currentRotation.length === 0) {
+                pairsGrid.innerHTML = '<p style="text-align: center; color: #666;">No rotation generated yet</p>';
+            } else {
+                pairsGrid.innerHTML = currentRotation.map((item, index) => {
+                    const statusClass = item.status;
+                    const statusIcon = item.status === 'waiting' ? '⏳' : 
+                                     item.status === 'current' ? '🧹' : '✅';
+                    const pairText = item.isSolo 
+                        ? `${item.pair[0]}<br><small>(Solo - No cleaning)</small>` 
+                        : `${item.pair[0]} & ${item.pair[1]}`;
+                    
+                    const cardClass = item.isSolo ? 'solo-card' : `pair-card ${statusClass}`;
+                    
+                    return `
+                        <div class="${cardClass}">
+                            <div style="margin-bottom: 5px;">
+                                <span class="status-indicator status-${statusClass}"></span>
+                                Week ${index + 1} ${statusIcon}
+                            </div>
+                            <div>${pairText}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function sendEmailReminder() {
+            if (currentRotation.length === 0 || currentWeekIndex >= currentRotation.length) {
+                alert('No active cleaning assignment to send email for.');
+                return;
+            }
+
+            const currentPair = currentRotation[currentWeekIndex];
+            const emailContent = generateEmailContent(currentPair, currentWeekIndex + 1);
+            
+            document.getElementById('emailPreview').innerHTML = emailContent;
+            document.getElementById('emailSection').style.display = 'block';
+            
+            // Scroll to email section
+            document.getElementById('emailSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function generateEmailContent(pairInfo, weekNumber) {
+            const today = new Date();
+            const monday = new Date(today);
+            monday.setDate(today.getDate() + (1 + 7 - today.getDay()) % 7);
+            
+            const emailTo = pairInfo.isSolo 
+                ? `${pairInfo.pair[0].toLowerCase()}@company.com`
+                : `${pairInfo.pair[0].toLowerCase()}@company.com, ${pairInfo.pair[1].toLowerCase()}@company.com`;
+            
+            const subject = pairInfo.isSolo 
+                ? `🏖️ Lucky Week - No Cleaning Duty (Week ${weekNumber})`
+                : `🧹 Office Cleaning Assignment - Week ${weekNumber}`;
+            
+            const greeting = pairInfo.isSolo 
+                ? `Hi ${pairInfo.pair[0]},`
+                : `Hi ${pairInfo.pair[0]} and ${pairInfo.pair[1]},`;
+            
+            const message = pairInfo.isSolo 
+                ? `Good news! This week you have a break from cleaning duties. Enjoy your solo week! 🎉`
+                : `You've been assigned office cleaning duty for this week. Please coordinate between yourselves to ensure the office is cleaned during the week.`;
+            
+            return `
+                <strong>To:</strong> ${emailTo}<br>
+                <strong>Subject:</strong> ${subject}<br>
+                <strong>Scheduled:</strong> Monday ${monday.toLocaleDateString()} at 8:00 AM<br><br>
+                
+                ${greeting}<br><br>
+                
+                ${message}<br><br>
+                
+                ${pairInfo.isSolo ? '' : `
+                <strong>Cleaning Checklist:</strong><br>
+                • Clean and organize common areas<br>
+                • Empty trash bins<br>
+                • Wipe down kitchen surfaces<br>
+                • Vacuum/mop floors as needed<br>
+                • Restock supplies if running low<br><br>
+                `}
+                
+                Thanks for keeping our workspace clean and organized!<br><br>
+                
+                Best regards,<br>
+                Office Cleaning Rotation System 🤖
+            `;
+        }
+
+        // Initialize display
+        updateDisplay();
+    </script>
+</body>
+</html>
