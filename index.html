@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Office Cleaning Rotation Manager</title>
+    <title>Gestor de Rotación de Limpieza de Oficina</title>
     <style>
         * {
             margin: 0;
@@ -209,50 +209,50 @@
 </head>
 <body>
     <div class="container">
-        <h1>🧹 Office Cleaning Rotation Manager</h1>
+        <h1>🧹 Gestor de Rotación de Limpieza de Oficina</h1>
         
         <div class="section">
-            <h2>👥 Team Members</h2>
+            <h2>👥 Miembros del Equipo</h2>
             <div class="colleagues-list" id="colleaguesList">
                 <!-- Will be populated by JavaScript -->
             </div>
         </div>
 
         <div class="section">
-            <h2>⚙️ Controls</h2>
+            <h2>⚙️ Controles</h2>
             <div class="controls">
-                <button onclick="generateNewRotation()">🔄 Generate New Rotation</button>
-                <button onclick="nextWeek()" id="nextWeekBtn">➡️ Next Week</button>
-                <button onclick="sendEmailReminder()" id="emailBtn" disabled>📧 Send Email Reminder</button>
-                <button onclick="resetRotation()">🔄 Reset All</button>
+                <button onclick="generateNewRotation()">🔄 Generar Nueva Rotación</button>
+                <button onclick="nextWeek()" id="nextWeekBtn">➡️ Siguiente Semana</button>
+                <button onclick="sendEmailReminder()" id="emailBtn" disabled>📧 Enviar Recordatorio por Email</button>
+                <button onclick="resetRotation()">🔄 Reiniciar Todo</button>
             </div>
         </div>
 
         <div class="section">
             <div class="week-info">
                 <div>
-                    <strong>Current Rotation:</strong> <span id="rotationNumber">1</span>
+                    <strong>Rotación Actual:</strong> <span id="rotationNumber">1</span>
                 </div>
                 <div>
-                    <strong>Week:</strong> <span id="currentWeek">1</span> of <span id="totalWeeks">6</span>
+                    <strong>Semana:</strong> <span id="currentWeek">1</span> de <span id="totalWeeks">6</span>
                 </div>
             </div>
 
             <div class="current-week" id="currentWeekDisplay">
-                <h3>No active cleaning assignment</h3>
-                <p>Click "Generate New Rotation" to start</p>
+                <h3>No hay asignación de limpieza activa</h3>
+                <p>Haz clic en "Generar Nueva Rotación" para comenzar</p>
             </div>
         </div>
 
         <div class="section">
-            <h2>📋 Current Rotation Schedule</h2>
+            <h2>📋 Horario de Rotación Actual</h2>
             <div class="pairs-grid" id="pairsGrid">
                 <!-- Will be populated by JavaScript -->
             </div>
         </div>
 
         <div class="section" id="emailSection" style="display: none;">
-            <h2>📧 Email Preview</h2>
+            <h2>📧 Vista Previa del Email</h2>
             <div class="email-preview" id="emailPreview">
                 <!-- Email content will be generated here -->
             </div>
@@ -261,7 +261,7 @@
 
     <script>
         const colleagues = [
-            { name: 'Juane', username: 'jeconchao' },
+            { name: 'Juan', username: 'jeconchao' },
             { name: 'Javi', username: 'jmpreussa' },
             { name: 'Nacho', username: 'ifaglonij' },
             { name: 'Klaus', username: 'kilehmannm' },
@@ -332,7 +332,7 @@
             // Check if rotation is complete
             if (currentWeekIndex >= currentRotation.length) {
                 rotationNumber++;
-                alert(`Rotation ${rotationNumber - 1} completed! Generate a new rotation for the next cycle.`);
+                alert(`¡Rotación ${rotationNumber - 1} completada! Genera una nueva rotación para el siguiente ciclo.`);
                 document.getElementById('nextWeekBtn').disabled = true;
                 document.getElementById('emailBtn').disabled = true;
             } else {
@@ -370,22 +370,22 @@
             const currentWeekDisplay = document.getElementById('currentWeekDisplay');
             if (currentRotation.length === 0) {
                 currentWeekDisplay.innerHTML = `
-                    <h3>No active cleaning assignment</h3>
-                    <p>Click "Generate New Rotation" to start</p>
+                    <h3>Nadie a cargo</h3>
+                    <p>Clickea "Generar Nueva Rotación" para comenzar</p>
                 `;
             } else if (currentWeekIndex >= currentRotation.length) {
                 currentWeekDisplay.innerHTML = `
-                    <h3>🎉 Rotation ${rotationNumber - 1} Complete!</h3>
-                    <p>Generate a new rotation to continue</p>
+                    <h3>🎉 Rotación ${rotationNumber - 1} Completa!</h3>
+                    <p>Genera una nueva rotación para continuar</p>
                 `;
             } else {
                 const currentPair = currentRotation[currentWeekIndex];
                 const pairText = currentPair.isSolo 
-                    ? `${currentPair.pair[0].name} (solo week - no cleaning required)` 
+                    ? `${currentPair.pair[0].name} (solo - no tiene que limpiar)` 
                     : `${currentPair.pair[0].name} & ${currentPair.pair[1].name}`;
                 
                 currentWeekDisplay.innerHTML = `
-                    <h3>Week ${currentWeekIndex + 1} - Current Assignment</h3>
+                    <h3>Semana ${currentWeekIndex + 1} - Asignación Actual</h3>
                     <div class="cleaning-pair">${pairText}</div>
                 `;
             }
@@ -393,14 +393,14 @@
             // Update pairs grid
             const pairsGrid = document.getElementById('pairsGrid');
             if (currentRotation.length === 0) {
-                pairsGrid.innerHTML = '<p style="text-align: center; color: #666;">No rotation generated yet</p>';
+                pairsGrid.innerHTML = '<p style="text-align: center; color: #666;">Aún no se ha generado ninguna rotación</p>';
             } else {
                 pairsGrid.innerHTML = currentRotation.map((item, index) => {
                     const statusClass = item.status;
                     const statusIcon = item.status === 'waiting' ? '⏳' : 
                                      item.status === 'current' ? '🧹' : '✅';
                     const pairText = item.isSolo 
-                        ? `${item.pair[0].name}<br><small>(Solo - No cleaning)</small>` 
+                        ? `${item.pair[0].name}<br><small>(Solo - Sin limpieza)</small>` 
                         : `${item.pair[0].name} & ${item.pair[1].name}`;
                     
                     const cardClass = item.isSolo ? 'solo-card' : `pair-card ${statusClass}`;
@@ -409,7 +409,7 @@
                         <div class="${cardClass}">
                             <div style="margin-bottom: 5px;">
                                 <span class="status-indicator status-${statusClass}"></span>
-                                Week ${index + 1} ${statusIcon}
+                                Semana ${index + 1} ${statusIcon}
                             </div>
                             <div>${pairText}</div>
                         </div>
@@ -420,7 +420,7 @@
 
         function sendEmailReminder() {
             if (currentRotation.length === 0 || currentWeekIndex >= currentRotation.length) {
-                alert('No active cleaning assignment to send email for.');
+                alert('No hay asignación de limpieza activa para enviar email.');
                 return;
             }
 
@@ -444,39 +444,39 @@
                 : `${pairInfo.pair[0].username}@company.com, ${pairInfo.pair[1].username}@company.com`;
             
             const subject = pairInfo.isSolo 
-                ? `🏖️ Lucky Week - No Cleaning Duty (Week ${weekNumber})`
-                : `🧹 Office Cleaning Assignment - Week ${weekNumber}`;
+                ? `🏖️ Semana de Suerte - Sin Turno de Limpieza (Semana ${weekNumber})`
+                : `🧹 Asignación de Limpieza de Oficina - Semana ${weekNumber}`;
             
             const greeting = pairInfo.isSolo 
-                ? `Hi ${pairInfo.pair[0].name},`
-                : `Hi ${pairInfo.pair[0].name} and ${pairInfo.pair[1].name},`;
+                ? `Hola ${pairInfo.pair[0].name},`
+                : `Hola ${pairInfo.pair[0].name} y ${pairInfo.pair[1].name},`;
             
             const message = pairInfo.isSolo 
-                ? `Good news! This week you have a break from cleaning duties. Enjoy your solo week! 🎉`
-                : `You've been assigned office cleaning duty for this week. Please coordinate between yourselves to ensure the office is cleaned during the week.`;
+                ? `¡Buenas noticias! Esta semana tienes un descanso de los turnos de limpieza. ¡Disfruta tu semana libre! 🎉`
+                : `Se les ha asignado el turno de limpieza de la oficina para esta semana. Por favor coordinen entre ustedes para asegurar que la oficina esté limpia durante la semana.`;
             
             return `
-                <strong>To:</strong> ${emailTo}<br>
-                <strong>Subject:</strong> ${subject}<br>
-                <strong>Scheduled:</strong> Monday ${monday.toLocaleDateString()} at 8:00 AM<br><br>
+                <strong>Para:</strong> ${emailTo}<br>
+                <strong>Asunto:</strong> ${subject}<br>
+                <strong>Programado:</strong> Lunes ${monday.toLocaleDateString('es-ES')} a las 8:00 AM<br><br>
                 
                 ${greeting}<br><br>
                 
                 ${message}<br><br>
                 
                 ${pairInfo.isSolo ? '' : `
-                <strong>Cleaning Checklist:</strong><br>
-                • Clean and organize common areas<br>
-                • Empty trash bins<br>
-                • Wipe down kitchen surfaces<br>
-                • Vacuum/mop floors as needed<br>
-                • Restock supplies if running low<br><br>
+                <strong>Lista de Tareas de Limpieza:</strong><br>
+                • Limpiar y organizar áreas comunes<br>
+                • Vaciar papeleras<br>
+                • Limpiar superficies de la cocina<br>
+                • Aspirar/trapear pisos según sea necesario<br>
+                • Reponer suministros si se están agotando<br><br>
                 `}
                 
-                Thanks for keeping our workspace clean and organized!<br><br>
+                ¡Gracias por mantener nuestro espacio de trabajo limpio y organizado!<br><br>
                 
-                Best regards,<br>
-                Office Cleaning Rotation System 🤖
+                Saludos cordiales,<br>
+                Sistema de Rotación de Limpieza de Oficina 🤖
             `;
         }
 
