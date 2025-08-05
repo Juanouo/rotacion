@@ -260,7 +260,19 @@
     </div>
 
     <script>
-        const colleagues = ['Juan', 'Javi', 'Nacho', 'Klaus', 'Lore', 'Hugo', 'GabrielP', 'GabrielV', 'Javier', 'Cata', 'Victor'];
+        const colleagues = [
+            { name: 'Juane', username: 'jeconchao' },
+            { name: 'Javi', username: 'jmpreussa' },
+            { name: 'Nacho', username: 'ifaglonij' },
+            { name: 'Klaus', username: 'kilehmannm' },
+            { name: 'Lore', username: 'lcgallardov' },
+            { name: 'Hugo', username: 'hesotop' },
+            { name: 'GabrielM', username: 'gemolinah' },
+            { name: 'GabrielV', username: 'gavargast' },
+            { name: 'Javier', username: 'jaramosg' },
+            { name: 'Cata', username: 'caquijadae' },
+            { name: 'Victor', username: 'vaballesterosV' }
+        ];
         
         let currentRotation = [];
         let currentWeekIndex = 0;
@@ -345,8 +357,8 @@
         function updateDisplay() {
             // Update colleagues list
             const colleaguesList = document.getElementById('colleaguesList');
-            colleaguesList.innerHTML = colleagues.map(name => 
-                `<span class="colleague-tag">${name}</span>`
+            colleaguesList.innerHTML = colleagues.map(colleague => 
+                `<span class="colleague-tag">${colleague.name}</span>`
             ).join('');
 
             // Update week info
@@ -369,8 +381,8 @@
             } else {
                 const currentPair = currentRotation[currentWeekIndex];
                 const pairText = currentPair.isSolo 
-                    ? `${currentPair.pair[0]} (solo week - no cleaning required)` 
-                    : `${currentPair.pair[0]} & ${currentPair.pair[1]}`;
+                    ? `${currentPair.pair[0].name} (solo week - no cleaning required)` 
+                    : `${currentPair.pair[0].name} & ${currentPair.pair[1].name}`;
                 
                 currentWeekDisplay.innerHTML = `
                     <h3>Week ${currentWeekIndex + 1} - Current Assignment</h3>
@@ -388,8 +400,8 @@
                     const statusIcon = item.status === 'waiting' ? '⏳' : 
                                      item.status === 'current' ? '🧹' : '✅';
                     const pairText = item.isSolo 
-                        ? `${item.pair[0]}<br><small>(Solo - No cleaning)</small>` 
-                        : `${item.pair[0]} & ${item.pair[1]}`;
+                        ? `${item.pair[0].name}<br><small>(Solo - No cleaning)</small>` 
+                        : `${item.pair[0].name} & ${item.pair[1].name}`;
                     
                     const cardClass = item.isSolo ? 'solo-card' : `pair-card ${statusClass}`;
                     
@@ -428,16 +440,16 @@
             monday.setDate(today.getDate() + (1 + 7 - today.getDay()) % 7);
             
             const emailTo = pairInfo.isSolo 
-                ? `${pairInfo.pair[0].toLowerCase()}@company.com`
-                : `${pairInfo.pair[0].toLowerCase()}@company.com, ${pairInfo.pair[1].toLowerCase()}@company.com`;
+                ? `${pairInfo.pair[0].username}@company.com`
+                : `${pairInfo.pair[0].username}@company.com, ${pairInfo.pair[1].username}@company.com`;
             
             const subject = pairInfo.isSolo 
                 ? `🏖️ Lucky Week - No Cleaning Duty (Week ${weekNumber})`
                 : `🧹 Office Cleaning Assignment - Week ${weekNumber}`;
             
             const greeting = pairInfo.isSolo 
-                ? `Hi ${pairInfo.pair[0]},`
-                : `Hi ${pairInfo.pair[0]} and ${pairInfo.pair[1]},`;
+                ? `Hi ${pairInfo.pair[0].name},`
+                : `Hi ${pairInfo.pair[0].name} and ${pairInfo.pair[1].name},`;
             
             const message = pairInfo.isSolo 
                 ? `Good news! This week you have a break from cleaning duties. Enjoy your solo week! 🎉`
