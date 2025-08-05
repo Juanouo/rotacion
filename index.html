@@ -278,6 +278,27 @@
         let currentWeekIndex = 0;
         let rotationNumber = 1;
 
+        // Load state from localStorage on page load
+        function loadState() {
+            const savedState = localStorage.getItem('cleaningRotationState');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                currentRotation = state.currentRotation || [];
+                currentWeekIndex = state.currentWeekIndex || 0;
+                rotationNumber = state.rotationNumber || 1;
+            }
+        }
+
+        // Save state to localStorage
+        function saveState() {
+            const state = {
+                currentRotation,
+                currentWeekIndex,
+                rotationNumber
+            };
+            localStorage.setItem('cleaningRotationState', JSON.stringify(state));
+        }
+
         function shuffleArray(array) {
             const shuffled = [...array];
             for (let i = shuffled.length - 1; i > 0; i--) {
@@ -315,6 +336,7 @@
                 currentRotation[0].status = 'current';
             }
             
+            saveState(); // Save after generating new rotation
             updateDisplay();
             document.getElementById('emailBtn').disabled = false;
         }
@@ -341,6 +363,7 @@
                 document.getElementById('emailBtn').disabled = false;
             }
 
+            saveState(); // Save after advancing week
             updateDisplay();
         }
 
@@ -351,10 +374,26 @@
             document.getElementById('emailSection').style.display = 'none';
             document.getElementById('nextWeekBtn').disabled = false;
             document.getElementById('emailBtn').disabled = true;
+            saveState(); // Save after reset
             updateDisplay();
         }
 
         function updateDisplay() {
+            // Update button states based on current state
+            const nextWeekBtn = document.getElementById('nextWeekBtn');
+            const emailBtn = document.getElementById('emailBtn');
+            
+            if (currentRotation.length === 0) {
+                nextWeekBtn.disabled = true;
+                emailBtn.disabled = true;
+            } else if (currentWeekIndex >= currentRotation.length) {
+                nextWeekBtn.disabled = true;
+                emailBtn.disabled = true;
+            } else {
+                nextWeekBtn.disabled = false;
+                emailBtn.disabled = false;
+            }
+
             // Update colleagues list
             const colleaguesList = document.getElementById('colleaguesList');
             colleaguesList.innerHTML = colleagues.map(colleague => 
@@ -370,22 +409,22 @@
             const currentWeekDisplay = document.getElementById('currentWeekDisplay');
             if (currentRotation.length === 0) {
                 currentWeekDisplay.innerHTML = `
-                    <h3>Nadie a cargo</h3>
-                    <p>Clickea "Generar Nueva Rotación" para comenzar</p>
+                    <h3>No active cleaning assignment</h3>
+                    <p>Click "Generate New Rotation" to start</p>
                 `;
             } else if (currentWeekIndex >= currentRotation.length) {
                 currentWeekDisplay.innerHTML = `
-                    <h3>🎉 Rotación ${rotationNumber - 1} Completa!</h3>
-                    <p>Genera una nueva rotación para continuar</p>
+                    <h3>🎉 Rotation ${rotationNumber - 1} Complete!</h3>
+                    <p>Generate a new rotation to continue</p>
                 `;
             } else {
                 const currentPair = currentRotation[currentWeekIndex];
                 const pairText = currentPair.isSolo 
-                    ? `${currentPair.pair[0].name} (solo - no tiene que limpiar)` 
+                    ? `${currentPair.pair[0].name} (solo week - no cleaning required)` 
                     : `${currentPair.pair[0].name} & ${currentPair.pair[1].name}`;
                 
                 currentWeekDisplay.innerHTML = `
-                    <h3>Semana ${currentWeekIndex + 1} - Asignación Actual</h3>
+                    <h3>Week ${currentWeekIndex + 1} - Current Assignment</h3>
                     <div class="cleaning-pair">${pairText}</div>
                 `;
             }
@@ -480,8 +519,11 @@
             `;
         }
 
-        // Initialize display
-        updateDisplay();
+        // Initialize display on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadState(); // Load saved state first
+            updateDisplay();
+        });
     </script>
 </body>
 </html>
