@@ -409,22 +409,22 @@
             const currentWeekDisplay = document.getElementById('currentWeekDisplay');
             if (currentRotation.length === 0) {
                 currentWeekDisplay.innerHTML = `
-                    <h3>No active cleaning assignment</h3>
-                    <p>Click "Generate New Rotation" to start</p>
+                    <h3>Sin asignación activa de limpieza</h3>
+                    <p>Haz clic en "Generar nueva rotación" para comenzar</p>
                 `;
             } else if (currentWeekIndex >= currentRotation.length) {
                 currentWeekDisplay.innerHTML = `
-                    <h3>🎉 Rotation ${rotationNumber - 1} Complete!</h3>
-                    <p>Generate a new rotation to continue</p>
+                    <h3>🎉 Rotación ${rotationNumber - 1} completada!</h3>
+                    <p>Genera una nueva rotación para continuar</p>
                 `;
             } else {
                 const currentPair = currentRotation[currentWeekIndex];
                 const pairText = currentPair.isSolo 
-                    ? `${currentPair.pair[0].name} (solo week - no cleaning required)` 
+                    ? `${currentPair.pair[0].name} (solo - sin limpieza requerida)` 
                     : `${currentPair.pair[0].name} & ${currentPair.pair[1].name}`;
                 
                 currentWeekDisplay.innerHTML = `
-                    <h3>Week ${currentWeekIndex + 1} - Current Assignment</h3>
+                    <h3>Semana ${currentWeekIndex + 1} - Asignación Actual</h3>
                     <div class="cleaning-pair">${pairText}</div>
                 `;
             }
