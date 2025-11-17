@@ -277,6 +277,7 @@
         let currentRotation = [];
         let currentWeekIndex = 0;
         let rotationNumber = 1;
+        let rotationStartDate = null;
 
         // Load state from localStorage on page load
         function loadState() {
@@ -286,6 +287,7 @@
                 currentRotation = state.currentRotation || [];
                 currentWeekIndex = state.currentWeekIndex || 0;
                 rotationNumber = state.rotationNumber || 1;
+                rotationStartDate = state.rotationStartDate ? new Date(state.rotationStartDate) : null;
             }
         }
 
@@ -294,7 +296,8 @@
             const state = {
                 currentRotation,
                 currentWeekIndex,
-                rotationNumber
+                rotationNumber,
+                rotationStartDate: rotationStartDate ? rotationStartDate.toISOString() : null
             };
             localStorage.setItem('cleaningRotationState', JSON.stringify(state));
         }
@@ -324,18 +327,59 @@
             return { pairs, solo };
         }
 
+        // Helper function to get the date for a specific week in the rotation
+        function getWeekDate(weekIndex) {
+            if (!rotationStartDate) return null;
+
+            const weekDate = new Date(rotationStartDate);
+            weekDate.setDate(rotationStartDate.getDate() + (weekIndex * 7));
+            return weekDate;
+        }
+
+        // Helper function to format a date range for a week
+        function formatWeekDateRange(weekIndex) {
+            const startDate = getWeekDate(weekIndex);
+            if (!startDate) return '';
+
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + 6);
+
+            const options = { day: 'numeric', month: 'short' };
+            const startStr = startDate.toLocaleDateString('es-ES', options);
+            const endStr = endDate.toLocaleDateString('es-ES', options);
+
+            return `${startStr} - ${endStr}`;
+        }
+
         function generateNewRotation() {
             const { pairs, solo } = createPairs(colleagues);
             currentRotation = pairs.map(pair => ({ pair, status: 'waiting' }));
             if (solo) {
                 currentRotation.push({ pair: [solo], status: 'waiting', isSolo: true });
             }
-            
+
+            // Capture the start date (next Monday from today)
+            const today = new Date();
+            const nextMonday = new Date(today);
+            const dayOfWeek = today.getDay();
+            // Calculate days until next Monday (if today is Monday, use today)
+            let daysUntilMonday;
+            if (dayOfWeek === 0) { // Sunday
+                daysUntilMonday = 1;
+            } else if (dayOfWeek === 1) { // Monday
+                daysUntilMonday = 0; // Use today if it's Monday
+            } else { // Tuesday-Saturday
+                daysUntilMonday = 8 - dayOfWeek;
+            }
+            nextMonday.setDate(today.getDate() + daysUntilMonday);
+            nextMonday.setHours(0, 0, 0, 0);
+            rotationStartDate = nextMonday;
+
             currentWeekIndex = 0;
             if (currentRotation.length > 0) {
                 currentRotation[0].status = 'current';
             }
-            
+
             saveState(); // Save after generating new rotation
             updateDisplay();
             document.getElementById('emailBtn').disabled = false;
@@ -371,6 +415,7 @@
             currentRotation = [];
             currentWeekIndex = 0;
             rotationNumber = 1;
+            rotationStartDate = null;
             document.getElementById('emailSection').style.display = 'none';
             document.getElementById('nextWeekBtn').disabled = false;
             document.getElementById('emailBtn').disabled = true;
@@ -419,13 +464,16 @@
                 `;
             } else {
                 const currentPair = currentRotation[currentWeekIndex];
-                const pairText = currentPair.isSolo 
-                    ? `${currentPair.pair[0].name} (solo - sin limpieza requerida)` 
+                const pairText = currentPair.isSolo
+                    ? `${currentPair.pair[0].name} (solo - sin limpieza requerida)`
                     : `${currentPair.pair[0].name} & ${currentPair.pair[1].name}`;
-                
+                const dateRange = formatWeekDateRange(currentWeekIndex);
+                const dateDisplay = dateRange ? `<div style="font-size: 0.9rem; opacity: 0.9; margin-top: 5px;">📅 ${dateRange}</div>` : '';
+
                 currentWeekDisplay.innerHTML = `
                     <h3>Semana ${currentWeekIndex + 1} - Asignación Actual</h3>
                     <div class="cleaning-pair">${pairText}</div>
+                    ${dateDisplay}
                 `;
             }
 
@@ -436,14 +484,16 @@
             } else {
                 pairsGrid.innerHTML = currentRotation.map((item, index) => {
                     const statusClass = item.status;
-                    const statusIcon = item.status === 'waiting' ? '⏳' : 
+                    const statusIcon = item.status === 'waiting' ? '⏳' :
                                      item.status === 'current' ? '🧹' : '✅';
-                    const pairText = item.isSolo 
-                        ? `${item.pair[0].name}<br><small>(Solo - Sin limpieza)</small>` 
+                    const pairText = item.isSolo
+                        ? `${item.pair[0].name}<br><small>(Solo - Sin limpieza)</small>`
                         : `${item.pair[0].name} & ${item.pair[1].name}`;
-                    
+                    const dateRange = formatWeekDateRange(index);
+                    const dateDisplay = dateRange ? `<div style="font-size: 0.85rem; margin-top: 8px; opacity: 0.9;">📅 ${dateRange}</div>` : '';
+
                     const cardClass = item.isSolo ? 'solo-card' : `pair-card ${statusClass}`;
-                    
+
                     return `
                         <div class="${cardClass}">
                             <div style="margin-bottom: 5px;">
@@ -451,6 +501,7 @@
                                 Semana ${index + 1} ${statusIcon}
                             </div>
                             <div>${pairText}</div>
+                            ${dateDisplay}
                         </div>
                     `;
                 }).join('');
@@ -474,30 +525,31 @@
         }
 
         function generateEmailContent(pairInfo, weekNumber) {
-            const today = new Date();
-            const monday = new Date(today);
-            monday.setDate(today.getDate() + (1 + 7 - today.getDay()) % 7);
-            
-            const emailTo = pairInfo.isSolo 
+            // Use the stored rotation date for this specific week
+            const weekIndex = weekNumber - 1;
+            const monday = getWeekDate(weekIndex);
+            const mondayStr = monday ? monday.toLocaleDateString('es-ES') : 'próximo lunes';
+
+            const emailTo = pairInfo.isSolo
                 ? `${pairInfo.pair[0].username}@company.com`
                 : `${pairInfo.pair[0].username}@company.com, ${pairInfo.pair[1].username}@company.com`;
-            
-            const subject = pairInfo.isSolo 
+
+            const subject = pairInfo.isSolo
                 ? `🏖️ Semana de Suerte - Sin Turno de Limpieza (Semana ${weekNumber})`
                 : `🧹 Asignación de Limpieza de Oficina - Semana ${weekNumber}`;
-            
-            const greeting = pairInfo.isSolo 
+
+            const greeting = pairInfo.isSolo
                 ? `Hola ${pairInfo.pair[0].name},`
                 : `Hola ${pairInfo.pair[0].name} y ${pairInfo.pair[1].name},`;
-            
-            const message = pairInfo.isSolo 
+
+            const message = pairInfo.isSolo
                 ? `¡Buenas noticias! Esta semana tienes un descanso de los turnos de limpieza. ¡Disfruta tu semana libre! 🎉`
                 : `Se les ha asignado el turno de limpieza de la oficina para esta semana. Por favor coordinen entre ustedes para asegurar que la oficina esté limpia durante la semana.`;
-            
+
             return `
                 <strong>Para:</strong> ${emailTo}<br>
                 <strong>Asunto:</strong> ${subject}<br>
-                <strong>Programado:</strong> Lunes ${monday.toLocaleDateString('es-ES')} a las 8:00 AM<br><br>
+                <strong>Programado:</strong> Lunes ${mondayStr} a las 8:00 AM<br><br>
                 
                 ${greeting}<br><br>
                 
